@@ -1,0 +1,381 @@
+
+<html>
+	<head>
+		<title>wgld.org WebGL sample 038</title>
+		<script src="https://wgld.org/j/minMatrixb.js" type="text/javascript"></script>
+		<script src="script.js" type="text/javascript"></script>
+
+		<script id="ivs" type="x-shader/x-vertex">
+      attribute vec3 position;
+
+      varying vec4 vPosition;
+
+
+      void main(void){
+        vPosition = vec4(position, 1.0);
+      	gl_Position = vPosition;
+      }
+
+		</script>
+
+		<script id="ifs" type="x-shader/x-fragment">
+      precision mediump float;
+
+      varying vec4 vPosition;
+
+      float rand(vec2 co){
+          return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453)/4.0;
+      }
+
+
+      void main(void){
+
+      	gl_FragColor = vec4(rand(vec2(vPosition.x-0.4,vPosition.y+0.3)),
+                  rand(vec2(vPosition.x,vPosition.y))
+        ,rand(vec2(vPosition.x+0.2,vPosition.y-0.1)), 1.0);
+		//	gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+      }
+
+		</script>
+
+
+
+
+          <script id="nuvs" type="x-shader/x-vertex">
+            attribute vec3 position;
+						attribute vec2 texcoord;
+
+            varying vec4 vPosition;
+						varying vec2 vTexCoord;
+
+
+            void main(void){
+              vPosition = vec4(position, 1.0);
+							vTexCoord = texcoord;
+              gl_Position = vPosition;
+            }
+
+          </script>
+
+          <script id="nufs" type="x-shader/x-fragment">
+            precision mediump float;
+            varying vec2 vTexCoord;
+
+						uniform float data;
+						uniform float result;
+						uniform int inputL;
+						uniform int hiddenL;
+						uniform int outputL;
+						uniform int training;
+						uniform float delta;
+
+            uniform sampler2D texture;
+
+						const int HIDDENL = 4;
+						const int INPUTL = 2;
+						const int OUTPUTL = 1;
+
+
+						float decode(float val){
+								val -= 0.5;
+								val *= 4.0;
+								return val;
+						}
+
+						float encode(float val){
+							val /= 4.0;
+							val += 0.5;
+							return val;
+						}
+
+//512pixel だと 0 ~ 511を受け取る
+
+						float getweight(int n, int k, int j, int l){
+							ivec2 access;
+							access.x = n;
+							access.y = k*l + j;
+							access.y = 511 - access.y;
+							vec4 temp = texture2D(texture, vec2( float(access.x)/ 512.0, float(access.y)/512.0));
+							//return temp.r;
+							return decode(temp.r);
+						}
+
+						float getweight2d(int t, int u){
+							return 0.0;
+						}
+
+
+						float tanh(float x)
+						{
+							float s  = (exp(x) - exp(-x)) / 2.0;
+							float c = (exp(x) + exp(-x)) / 2.0;
+							return s / c;
+						}
+
+						int mod(int x, int y){
+							return x - y * int(x/y);
+						}
+
+            varying vec4 vPosition;
+
+            void main(void){
+
+							float a[100];
+							float z[100];
+							float y[100];
+							float d1[100];
+							float d2[100];
+
+
+
+							ivec2 reso;
+							reso.x = int(vTexCoord.x * 512.0);
+							reso.y = int(vTexCoord.y * 512.0);
+							reso.y = 511 - reso.y;
+
+
+							float tempo = getweight(reso.x,int(reso.y/INPUTL), mod(reso.y,INPUTL),INPUTL);
+							vec2 ac = vTexCoord.xy;
+							vec4 temp = texture2D(texture, ac);
+							tempo = temp.r;
+							tempo = decode(tempo);
+
+
+//////
+
+
+								float x[2];
+								x[0] = 1.0;
+								x[1] = data;
+
+								for(int i=0;i < HIDDENL; i++){
+										a[i] = 0.0;
+										for(int j = 0; j<INPUTL; j++){
+											a[i] += getweight(0,i,j,INPUTL) * x[j];
+										}
+										z[i] = tanh(a[i]);
+								}
+
+								//out
+								for(int i=0;i< OUTPUTL;i++){
+									y[i] = 0.0;
+									for(int j=0;j < HIDDENL;j++){
+										y[i] += getweight(1,i,j,HIDDENL) * z[j];
+									}
+								}
+
+									d2[0] = y[0] - result;
+
+									for(int j=0; j < HIDDENL; j++){
+												float tmp = getweight(1,0,j,HIDDENL) * d2[0];
+												d1[j] = (1.0 - z[j] * z[j]) * tmp;
+									}
+
+
+									if(reso.x == 0 && reso.y < 8 ){
+										if(reso.y == 0) tempo -= delta * d1[0] * x[0];
+										if(reso.y == 1) tempo -= delta * d1[0] * x[1];
+										if(reso.y == 2) tempo -= delta * d1[1] * x[0];
+										if(reso.y == 3) tempo -= delta * d1[1] * x[1];
+										if(reso.y == 4) tempo -= delta * d1[2] * x[0];
+										if(reso.y == 5) tempo -= delta * d1[2] * x[1];
+										if(reso.y == 6) tempo -= delta * d1[3] * x[0];
+										if(reso.y == 7) tempo -= delta * d1[3] * x[1];
+									}else if(reso.x == 1 && reso.y < 4){
+										if(reso.y == 0) tempo -= delta * d2[0] * z[0];
+										if(reso.y == 1) tempo -= delta * d2[0] * z[1];
+										if(reso.y == 2) tempo -= delta * d2[0] * z[2];
+										if(reso.y == 3) tempo -= delta * d2[0] * z[3];
+							//			tempo -= delta * d1[reso.y/HIDDENL] * x[mod(reso.y,HIDDENL)];
+									}
+
+								float res = abs(d2[0]);
+
+								tempo = encode(tempo);
+
+								if(reso.x == 0 && reso.y < 8 ){
+									gl_FragColor = vec4(encode(decode(tempo)),tempo,tempo,1.0);
+								}else if(reso.x == 1 && reso.y < 4){
+									gl_FragColor = vec4(encode(decode(tempo)),tempo,tempo,1.0);
+								}else{
+									gl_FragColor = vec4(res,res,res,1.0);//texture2D(texture, vTexCoord);// - vec4(0.5,0.5,0.5,0.0) + vec4(decode(result).rgb, 0.0);
+								}
+/////////////
+
+            }
+
+          </script>
+
+
+							<script id="dispvs" type="x-shader/x-vertex">
+								precision mediump float;
+								attribute vec3 position;
+								attribute vec2 texcoord;
+
+		            varying vec4 vPosition;
+								varying vec2 vTexCoord;
+
+
+		            void main(void){
+		              vPosition = vec4(position, 1.0);
+									vTexCoord = texcoord;
+		              gl_Position = vPosition;
+		            }
+							</script>
+
+					<script id="dispfs" type="x-shader/x-fragment">
+				    precision mediump float;
+						uniform float result;
+						uniform float data;
+						varying vec4 vPosition;
+						varying vec2 vTexCoord;
+					  uniform sampler2D texture;
+
+						const int HIDDENL = 4;
+						const int INPUTL = 2;
+						const int OUTPUTL = 1;
+						const int LOOP = 10;
+
+						float decode(float val){
+								val -= 0.5;
+								val *= 4.0;
+								return val;
+						}
+
+						float encode(float val){
+							val /= 4.0;
+							val += 0.5;
+							return val;
+						}
+
+						float getweight(int n, int k, int j, int l){
+							ivec2 access;
+							access.x = n;
+							access.y = k*l + j;
+							access.y = 511 - access.y;
+							vec4 temp = texture2D(texture, vec2( float(access.x)/ 512.0, float(access.y)/512.0));
+						//	return temp.r;
+							return decode(temp.r);
+						}
+
+
+												float tanh(float x)
+												{
+													float s  = (exp(x) - exp(-x)) / 2.0;
+											    float c = (exp(x) + exp(-x)) / 2.0;
+											    return s / c;
+												}
+
+												int mod(int x, int y){
+													return x - y * int(x/y);
+												}
+
+						vec2 adjust_function(vec2 value) {
+								return vec2(value.x*256.0 +256.0, 256.0 + 256.0 * value.y);
+						}
+
+						float calcnetwork(float value){
+							float a[100];
+							float z[100];
+							float y[100];
+							float d1[100];
+							float d2[100];
+
+							float x[2];
+							x[0] = 1.0;
+							x[1] = value;
+
+
+
+							for(int i=0;i < HIDDENL; i++){
+									a[i] = 0.0;
+									for(int j = 0; j<INPUTL; j++){
+										a[i] += getweight(0,i,j,INPUTL) * x[j];
+									}
+									z[i] = tanh(a[i]);
+							}
+
+							//out
+							for(int i=0;i< OUTPUTL;i++){
+								y[i] = 0.0;
+								for(int j=0;j < HIDDENL;j++){
+									y[i] += getweight(1,i,j,HIDDENL) * z[j];
+								}
+							}
+						//	return 0.5;
+							//if(y[0] < -0.0 || y[0] > 0.0) return 0.5;
+						  return y[0];
+						}
+
+						float calchidden(float value, int n){
+								float a[100];
+								float z[100];
+								float y[100];
+								float d1[100];
+								float d2[100];
+
+								float x[2];
+								x[0] = 1.0;
+								x[1] = value;
+
+
+
+								for(int i=0;i < HIDDENL; i++){
+										a[i] = 0.0;
+										for(int j = 0; j<INPUTL; j++){
+											a[i] += getweight(0,i,j,INPUTL) * x[j];
+										}
+										z[i] = tanh(a[i]);
+								}
+
+
+							  return z[3];
+							}
+
+
+
+						void main() {
+							ivec2 reso;
+							reso.x = int(vTexCoord.x * 512.0);
+							reso.y = int(vTexCoord.y * 512.0);
+							reso.y = 511 - reso.y;
+
+
+
+
+
+
+
+							float x = 512.0 / 2.0;
+							float y = 512.0 / 2.0;
+							float size = 1.0;
+							vec2  pos[50];
+							for(int i= 0; i< LOOP; i++){
+								int a = i*2 - LOOP;
+							//	pos[i] = adjust_function( vec2( float(i)/50.0, sin((float(i)/float(LOOP))*3.141592) ));
+								float tmp = calcnetwork(float(a)/float(LOOP));
+					//			float tmp = cos(3.14*(float(i*2 - LOOP)/10.0));//calcnetwork(float(i)/float(LOOP));
+								pos[i] = adjust_function( vec2( float(a)/float(LOOP), tmp));
+							}
+
+							float dist = 0.0;
+							float color = 0.0;
+
+							for(int i=0; i < LOOP; i++){
+									dist = length(vTexCoord.xy *512.0 - pos[i]);
+									color += pow(size/dist, 2.0);
+							}
+						//		gl_FragColor = texture2D(texture, vTexCoord.xy);
+							gl_FragColor = vec4(vec3(color), 1.0);
+						//gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+						}
+					</script>
+
+
+
+	</head>
+	<body>
+		<canvas id="canvas"></canvas>
+		
+	</body>
+</html>
