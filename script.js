@@ -196,6 +196,7 @@ onload = function(){
 
 		gl.bindTexture(gl.TEXTURE_2D, null);
 
+		showgraph = document.getElementById("cbox1").checked;;
 
 
 
