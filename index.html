@@ -238,13 +238,42 @@
 						const int OUTPUTL = 1;
 						const int LOOP = 10;
 
+						struct Data
+						{
+						  float result;
+						  vec4 hidden;
+						};
 
-						float solve_line(vec2 v0, vec2 v1){
+						struct FiveVec2
+						{
+							vec2 x[50];
+							vec2 y[50];
+							vec2 z[50];
+							vec2 w[50];
+							vec2 c[50];
+						};
+
+
+
+						float square(float val){
+							return val*val;
+						}
+
+						vec2 solve_line(vec2 v0, vec2 v1){
 							vec2 ret;
 							ret.x = (v1.y- v0.y)/(v1.x- v0.x);
-							ret.y = v0.y-ret2.x*v0.x;
-							return ret
+							ret.y = v0.y-ret.x*v0.x;
+							return ret;
 						}
+
+						float solve_distance(vec2 p, vec2 line)
+						{
+							float val;
+							val = abs( -(line.x*p.x) - line.y + (p.y))/sqrt(1.0+square(line.x));
+							return val;
+						}
+
+
 
 						float decode(float val){
 								val -= 0.5;
@@ -284,6 +313,76 @@
 								return vec2(value.x*256.0 +256.0, 256.0 + 256.0 * value.y);
 						}
 
+
+
+						vec2 revise_pos(vec2 pos){
+							return vec2(0.0,0.0);
+						}
+
+						vec3 show_line_all(ivec2 reso, vec2 pos[50], vec2 hpos0[50], vec2 hpos1[50], vec2 hpos2[50], vec2 hpos3[50]){
+							vec3 dist = vec3(0.0, 0.0, 0.0);
+							float t = 512.0 /float(LOOP);
+
+							for(int i = 0; i <LOOP; i++){
+
+												if(t*float(i) < float(reso.x) && float(reso.x) < t* float(i+1)) {
+														dist.x = solve_distance(vec2(float(reso.x),float(512-reso.y)),solve_line(pos[i],pos[i+1]));
+									/*					dist.y = solve_distance(vec2(float(reso.x),float(512-reso.y)),solve_line(data.y[i],data.y[i+1]));
+														dist.y += solve_distance(vec2(float(reso.x),float(512-reso.y)),solve_line(data.z[i],data.z[i+1]));
+														dist.y += solve_distance(vec2(float(reso.x),float(512-reso.y)),solve_line(data.w[i],data.w[i+1]));
+														dist.y += solve_distance(vec2(float(reso.x),float(512-reso.y)),solve_line(data.c[i],data.c[i+1]));
+														*/
+												}
+
+											}
+							return dist;
+						}
+
+
+						float show_line(ivec2 reso, vec2 pos[50]){
+									float dist = 0.0;
+									float t = 512.0 /float(LOOP);
+
+									for(int i = 0; i <LOOP; i++){
+
+														if( t*float(i) < float(reso.x) && float(reso.x) < t* float(i+1) ) {
+																dist = solve_distance(vec2(float(reso.x),float(512-reso.y)),solve_line(pos[i],pos[i+1]));
+
+														}
+
+													}
+														return dist;
+						}
+
+						Data calcnetwork_all(float value){
+							float a[100];
+							float z[100];
+							float y[100];
+							float d1[100];
+							float d2[100];
+
+							float x[2];
+							x[0] = 1.0;
+							x[1] = value;
+
+							for(int i=0;i < HIDDENL; i++){
+									a[i] = 0.0;
+									for(int j = 0; j<INPUTL; j++){
+										a[i] += getweight(0,i,j,INPUTL) * x[j];
+									}
+									z[i] = tanh(a[i]);
+							}
+
+							for(int i=0;i< OUTPUTL;i++){
+								y[i] = 0.0;
+								for(int j=0;j < HIDDENL;j++){
+									y[i] += getweight(1,i,j,HIDDENL) * z[j];
+								}
+							}
+
+							return Data(y[0],vec4(z[0],z[1],z[2],z[3]) );
+						}
+
 						float calcnetwork(float value){
 							float a[100];
 							float z[100];
@@ -312,7 +411,7 @@
 						  return y[0];
 						}
 
-						float calchidden(float value, int n){
+						vec4 calchidden(float value){
 								float a[100];
 								float z[100];
 								float y[100];
@@ -334,7 +433,7 @@
 								}
 
 
-							  return z[3];
+							  return vec4(z[0],z[1],z[2],z[3]);
 							}
 
 
@@ -349,29 +448,75 @@
 							float y = 512.0 / 2.0;
 							float size = 1.0;
 							vec2  pos[50];
-							for(int i= 0; i< LOOP; i++){
+							vec2  hpos0[50];
+							vec2  hpos1[50];
+							vec2  hpos2[50];
+							vec2  hpos3[50];
+
+							for(int i= 0; i< LOOP+1; i++){
 								int a = i*2 - LOOP;
 							//	pos[i] = adjust_function( vec2( float(i)/50.0, sin((float(i)/float(LOOP))*3.141592) ));
-								float tmp = calcnetwork(float(a)/float(LOOP));
-					//			float tmp = cos(3.14*(float(i*2 - LOOP)/10.0));//calcnetwork(float(i)/float(LOOP));
-								pos[i] = adjust_function( vec2( float(a)/float(LOOP), tmp));
+						//		float tmp = calcnetwork(float(a)/float(LOOP));
+					//		vec4 hpos = calchidden(float(a)/float(LOOP));
+							Data tmp = calcnetwork_all(float(a)/float(LOOP));
+			//			float tmp = cos(3.14*(float(i*2 - LOOP)/10.0));//calcnetwork(float(i)/float(LOOP));
+							pos[i] =  adjust_function( vec2( float(a)/float(LOOP), tmp.result));
+							hpos0[i] = adjust_function( vec2( float(a)/float(LOOP), tmp.hidden.x ));
+							hpos1[i] = adjust_function( vec2( float(a)/float(LOOP), tmp.hidden.y ));
+							hpos2[i] = adjust_function( vec2( float(a)/float(LOOP), tmp.hidden.z ));
+							hpos3[i] = adjust_function( vec2( float(a)/float(LOOP), tmp.hidden.w ));
 							}
 
 							float dist = 0.0;
-							float color = 0.0;
+							float h_dist[4];
 
+							float color = 0.0;
+							float h_color = 0.0;
+
+
+						//	all_dist = vec3(0.0, 0.0, 0.0);
+							float t = 512.0 /float(LOOP);
+
+							for(int i = 0; i <LOOP; i++){
+
+												if(t*float(i) < float(reso.x) && float(reso.x) < t* float(i+1)) {
+														dist= solve_distance(vec2(float(reso.x),float(512-reso.y)),solve_line(pos[i],pos[i+1]));
+														h_dist[0] = solve_distance(vec2(float(reso.x),float(512-reso.y)),solve_line(hpos0[i],hpos0[i+1]));
+														h_dist[1] = solve_distance(vec2(float(reso.x),float(512-reso.y)),solve_line(hpos1[i],hpos1[i+1]));
+														h_dist[2] = solve_distance(vec2(float(reso.x),float(512-reso.y)),solve_line(hpos2[i],hpos2[i+1]));
+														h_dist[3] = solve_distance(vec2(float(reso.x),float(512-reso.y)),solve_line(hpos3[i],hpos3[i+1]));
+
+												}
+
+											}
+
+
+							color += pow(size/dist, 2.0);
+							h_color += pow(size/h_dist[0], 2.0);
+							h_color += pow(size/h_dist[1], 2.0);
+							h_color += pow(size/h_dist[2], 2.0);
+							h_color += pow(size/h_dist[3], 2.0);
+							/*
+							for(int i = 0; i < 4; i++){
+								h_color += pow(size/h_dist[i],2.0);
+							}
+							*/
+
+/*
 							for(int i=0; i < LOOP; i++){
-									dist = length(vTexCoord.xy *512.0 - pos[i]);
+							dist = solve_distance(vTexCoord.xy *512.0,solve_line(pos[i],pos[i+1]));
+									//dist = length(vTexCoord.xy *512.0 - pos[i]);
 									color += pow(size/dist, 2.0);
 							}
+*/
 						//		gl_FragColor = texture2D(texture, vTexCoord.xy);
-							gl_FragColor = vec4(vec3(color), 1.0);
+							gl_FragColor = vec4(vec3(color+h_color,color,color), 1.0);
 						//gl_FragColor = vec4(1.0,0.0,0.0,1.0);
 						}
 					</script>
 
 
-					<script id="ivs" type="x-shader/x-vertex">
+					<script id="wvs" type="x-shader/x-vertex">
 			      attribute vec3 position;
 
 			      varying vec4 vPosition;
@@ -384,7 +529,7 @@
 
 					</script>
 
-					<script id="ifs" type="x-shader/x-fragment">
+					<script id="wfs" type="x-shader/x-fragment">
 			      precision mediump float;
 
 			      varying vec4 vPosition;

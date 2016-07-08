@@ -2,7 +2,7 @@
 var c;
 
 var N = 50
-var DELTA = 0.1
+var DELTA = 0.4
 
 var LERNING_LOOP = 1000
 
@@ -38,9 +38,13 @@ onload = function(){
 	var disp_v_sh = create_shader('dispvs');
 	var disp_f_sh = create_shader('dispfs');
 
+	var w_v_sh = create_shader('wvs');
+	var w_f_sh = create_shader('wfs');
+
 	var i_prg = create_program(v_sh, f_sh);
 	var nu_prg = create_program(nu_v_sh, nu_f_sh);
 	var disp_prg = create_program(disp_v_sh, disp_f_sh);
+	var w_prg = create_program(w_v_sh, w_f_sh);
 
 
 
@@ -66,6 +70,13 @@ onload = function(){
 	dispAttStride[0] = 3;
 	dispAttStride[1] = 2;
 
+	var wAttLocation = new Array();
+	wAttLocation = [gl.getAttribLocation(disp_prg, 'position'),
+											gl.getAttribLocation(disp_prg, 'texcoord')];
+
+	var wAttStride = new Array();
+	wAttStride[0] = 3;
+	wAttStride[1] = 2;
 
 
 
@@ -95,6 +106,7 @@ onload = function(){
 	var nuVBOList  = [vPosition,vTexCoord];
 	var iVBOList = [vPosition];
 	var dispVBOList = [vPosition,vTexCoord];
+	var wVBOList = [vPosition,vTexCoord];
 	var vIndex    = create_ibo(index);
 
 	var nu_uniLocation = new Array();
@@ -111,6 +123,9 @@ onload = function(){
 	disp_uniLocation[0] = gl.getUniformLocation(disp_prg, 'texture');
 	disp_uniLocation[1] = gl.getUniformLocation(disp_prg, 'data');
 	disp_uniLocation[2] = gl.getUniformLocation(disp_prg, 'result');
+
+	var w_uniLocation = new Array();
+	w_uniLocation[0] = gl.getUniformLocation(disp_prg, 'texture');
 
 
 	var count = 0;
@@ -276,7 +291,7 @@ if(showgraph){
 		gl.flush();
 		console.log(count);
 
-		setTimeout(arguments.callee, 200 / 1);
+		setTimeout(arguments.callee, 1000 / 1);
 	})();
 
 
