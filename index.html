@@ -207,6 +207,8 @@
           </script>
 
 
+
+
 							<script id="dispvs" type="x-shader/x-vertex">
 								precision mediump float;
 								attribute vec3 position;
@@ -235,6 +237,14 @@
 						const int INPUTL = 2;
 						const int OUTPUTL = 1;
 						const int LOOP = 10;
+
+
+						float solve_line(vec2 v0, vec2 v1){
+							vec2 ret;
+							ret.x = (v1.y- v0.y)/(v1.x- v0.x);
+							ret.y = v0.y-ret2.x*v0.x;
+							return ret
+						}
 
 						float decode(float val){
 								val -= 0.5;
@@ -285,8 +295,6 @@
 							x[0] = 1.0;
 							x[1] = value;
 
-
-
 							for(int i=0;i < HIDDENL; i++){
 									a[i] = 0.0;
 									for(int j = 0; j<INPUTL; j++){
@@ -295,15 +303,12 @@
 									z[i] = tanh(a[i]);
 							}
 
-							//out
 							for(int i=0;i< OUTPUTL;i++){
 								y[i] = 0.0;
 								for(int j=0;j < HIDDENL;j++){
 									y[i] += getweight(1,i,j,HIDDENL) * z[j];
 								}
 							}
-						//	return 0.5;
-							//if(y[0] < -0.0 || y[0] > 0.0) return 0.5;
 						  return y[0];
 						}
 
@@ -340,12 +345,6 @@
 							reso.y = int(vTexCoord.y * 512.0);
 							reso.y = 511 - reso.y;
 
-
-
-
-
-
-
 							float x = 512.0 / 2.0;
 							float y = 512.0 / 2.0;
 							float size = 1.0;
@@ -371,6 +370,39 @@
 						}
 					</script>
 
+
+					<script id="ivs" type="x-shader/x-vertex">
+			      attribute vec3 position;
+
+			      varying vec4 vPosition;
+
+
+			      void main(void){
+			        vPosition = vec4(position, 1.0);
+			      	gl_Position = vPosition;
+			      }
+
+					</script>
+
+					<script id="ifs" type="x-shader/x-fragment">
+			      precision mediump float;
+
+			      varying vec4 vPosition;
+
+			      float rand(vec2 co){
+			          return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453)/4.0;
+			      }
+
+
+			      void main(void){
+
+			      	gl_FragColor = vec4(rand(vec2(vPosition.x-0.4,vPosition.y+0.3)),
+			                  rand(vec2(vPosition.x,vPosition.y))
+			        ,rand(vec2(vPosition.x+0.2,vPosition.y-0.1)), 1.0);
+					//	gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+			      }
+
+					</script>
 
 
 	</head>
