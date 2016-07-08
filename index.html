@@ -517,34 +517,161 @@
 
 
 					<script id="wvs" type="x-shader/x-vertex">
-			      attribute vec3 position;
+					attribute vec3 position;
+					attribute vec2 texcoord;
 
-			      varying vec4 vPosition;
+					varying vec4 vPosition;
+					varying vec2 vTexCoord;
 
 
-			      void main(void){
-			        vPosition = vec4(position, 1.0);
-			      	gl_Position = vPosition;
-			      }
+					void main(void){
+						vPosition = vec4(position, 1.0);
+						vTexCoord = texcoord;
+						gl_Position = vPosition;
+					}
 
 					</script>
 
 					<script id="wfs" type="x-shader/x-fragment">
-			      precision mediump float;
 
-			      varying vec4 vPosition;
+						const int LAYER = 3;
+						precision mediump float;
+						varying vec4 vPosition;
+						varying vec2 vTexCoord;
+					  uniform sampler2D texture;
 
-			      float rand(vec2 co){
-			          return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453)/4.0;
-			      }
+						vec2 adjust_function(vec2 pos){
+							return vec2(pos.x * 2.0 -1.0, pos.y * 2.0 - 1.0);
+						}
+
+						float square(float val){
+							return val*val;
+						}
+
+						vec2 solve_line(vec2 v0, vec2 v1){
+							vec2 ret;
+							ret.x = (v1.y- v0.y)/(v1.x- v0.x);
+							ret.y = v0.y-ret.x*v0.x;
+							return ret;
+						}
+
+						float solve_distance(vec2 p, vec2 line)
+						{
+							float val;
+							val = abs( -(line.x*p.x) - line.y + (p.y))/sqrt(1.0+square(line.x));
+							return val;
+						}
+
+						float show_line(vec2 p0, vec2 p1){
+									float dist = 100.0;
+
+									float pix = vTexCoord.x * 2.0 - 1.0;
+									float piy = vTexCoord.y * 2.0 - 1.0;
+
+									if( p0.x < pix && pix< p1.x ) {
+												dist = solve_distance( vec2(pix , -piy), solve_line(p0,p1) );
+									}
+
+								 	return dist;
+						}
+
+						int mod(int x, int y){
+							return x - y * int(x/y);
+						}
+
+						float decode(float val){
+								val -= 0.5;
+								val *= 4.0;
+								return val;
+						}
+
+						float encode(float val){
+							val /= 4.0;
+							val += 0.5;
+							return val;
+						}
+
+						float getweight(int n, int k){
+							ivec2 access;
+							access.x = n;
+							access.y = k;
+							return 0.0;
+					//		return decode(temp.r);
+						}
 
 
 			      void main(void){
 
-			      	gl_FragColor = vec4(rand(vec2(vPosition.x-0.4,vPosition.y+0.3)),
-			                  rand(vec2(vPosition.x,vPosition.y))
-			        ,rand(vec2(vPosition.x+0.2,vPosition.y-0.1)), 1.0);
-					//	gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+							float dist = 0.0;
+							float color = 0.0;
+
+							vec2 pos[10];
+							int depth[3];
+							depth[0] = 2;
+							depth[1] = 4;
+							depth[2] = 1;
+
+							float weight[12];
+
+							int loop = 0;
+							float size = 7.0;
+							float line_size;
+							for(int i = 0 ; i< LAYER; i++){
+								loop += depth[i];
+							}
+
+							float x = 2.0/float(LAYER+1);
+							float y0 = 2.0/float(depth[0]+1);
+							float y1 = 2.0/float(depth[1]+1);
+							float y2 = 2.0/float(depth[2]+1);
+
+						  pos[0] = vec2(-1.0+x, -1.0 + y0*1.0);
+							pos[1] = vec2(-1.0+x, -1.0 + y0*2.0);
+							pos[2] = vec2(-1.0+x*2.0, -1.0 + y1*1.0);
+							pos[3] = vec2(-1.0+x*2.0, -1.0 + y1*2.0);
+							pos[4] = vec2(-1.0+x*2.0, -1.0 + y1*3.0);
+							pos[5] = vec2(-1.0+x*2.0, -1.0 + y1*4.0);
+							pos[6] = vec2(-1.0+x*3.0, -1.0 + y2*1.0);
+
+
+							vec2 freso = vTexCoord.xy * 2.0 - 1.0;
+
+							ivec2 access;
+
+
+							for(int i =0; i < 12 ; i++){
+									access.x = i/8;
+									access.y = 511- mod(i,8);
+						 			weight[i] = decode( texture2D(texture, vec2( float(access.x)/ 512.0, float(access.y)/512.0)).r  );
+					 		}
+
+
+							//point draw;
+							for(int i=0; i <7; i++){
+									dist = length(freso - pos[i])*512.0;
+									color += pow(size/dist, 2.0);
+							}
+
+							float l_dist =0.0;
+							float l_color = 0.0;
+							l_color  = pow((abs(weight[0]))/(show_line(pos[0],pos[2])*512.0),3.0);
+						  l_color += pow((abs(weight[1]))/(show_line(pos[1],pos[2])*512.0),3.0);
+
+							l_color += pow((abs(weight[2]))/(show_line(pos[0],pos[3])*512.0),3.0);
+							l_color += pow((abs(weight[3]))/(show_line(pos[1],pos[3])*512.0),3.0);
+							l_color += pow((abs(weight[4]))/(show_line(pos[0],pos[4])*512.0),3.0);
+							l_color += pow((abs(weight[5]))/(show_line(pos[1],pos[4])*512.0),3.0);
+							l_color += pow((abs(weight[6]))/(show_line(pos[0],pos[5])*512.0),3.0);
+							l_color += pow((abs(weight[7]))/(show_line(pos[1],pos[5])*512.0),3.0);
+							l_color += pow((abs(weight[8]))/(show_line(pos[2],pos[6])*512.0),3.0);
+							l_color += pow((abs(weight[9]))/(show_line(pos[3],pos[6])*512.0),3.0);
+							l_color += pow((abs(weight[10]))/(show_line(pos[4],pos[6])*512.0),3.0);
+							l_color += pow((abs(weight[11]))/(show_line(pos[5],pos[6])*512.0),3.0);
+
+							//l_color += pow(show_line(pos[0],pos[4])*512.0,2.0);
+							//l_color += pow(show_line(pos[0],pos[5])*512.0,2.0);
+
+						gl_FragColor = vec4(color+l_color,color,color,1.0);
 			      }
 
 					</script>

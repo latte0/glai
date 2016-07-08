@@ -243,7 +243,7 @@ if(showgraph){
 
 }else{
 
-				gl.useProgram(nu_prg);
+				gl.useProgram(w_prg);
 
 				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 				gl.clearColor(1.0, 1.0, 1.0, 1.0);
@@ -254,17 +254,12 @@ if(showgraph){
 
 
 
-				set_attribute(nuVBOList, nuAttLocation, nuAttStride);
+				set_attribute(wVBOList, wAttLocation, wAttStride);
 				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vIndex);
 
-				gl.uniform1f(nu_uniLocation[0], data[count%50]);
-				gl.uniform1i(nu_uniLocation[1], 0);
-				gl.uniform1f(nu_uniLocation[2], result[count%50]);
-				gl.uniform1i(nu_uniLocation[3], NUM_INPUT);
-				gl.uniform1i(nu_uniLocation[4], NUM_HIDDEN);
-				gl.uniform1i(nu_uniLocation[5], NUM_OUTPUT);
-				gl.uniform1i(nu_uniLocation[6], N);
-				gl.uniform1f(nu_uniLocation[7], DELTA);
+
+				gl.uniform1i(nu_uniLocation[0], 0);
+
 
 				gl.activeTexture(gl.TEXTURE0);
 				gl.bindTexture(gl.TEXTURE_2D, fBuffer[(count)%2].t);
@@ -291,7 +286,7 @@ if(showgraph){
 		gl.flush();
 		console.log(count);
 
-		setTimeout(arguments.callee, 1000 / 1);
+		setTimeout(arguments.callee, 200 / 1);
 	})();
 
 
