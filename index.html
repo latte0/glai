@@ -3,7 +3,8 @@
 	<head>
 		<title>glai</title>
 		<script src="script.js" type="text/javascript"></script>
-		<link rel="stylesheet" href="style_checkbox.css">
+		<link rel="stylesheet" href="style.css">
+		<link href='https://fonts.googleapis.com/css?family=Marmelad' rel='stylesheet' type='text/css'>
 
 		<script id="ivs" type="x-shader/x-vertex">
       attribute vec3 position;
@@ -654,19 +655,19 @@
 
 							float l_dist =0.0;
 							float l_color = 0.0;
-							l_color  = pow((abs(weight[0]))/(show_line(pos[0],pos[2])*512.0),3.0);
-						  l_color += pow((abs(weight[1]))/(show_line(pos[1],pos[2])*512.0),3.0);
+							l_color  = pow(3.0*(abs(weight[0]))/(show_line(pos[0],pos[2])*512.0),3.0);
+						  l_color += pow(3.0*(abs(weight[1]))/(show_line(pos[1],pos[2])*512.0),3.0);
 
-							l_color += pow((abs(weight[2]))/(show_line(pos[0],pos[3])*512.0),3.0);
-							l_color += pow((abs(weight[3]))/(show_line(pos[1],pos[3])*512.0),3.0);
-							l_color += pow((abs(weight[4]))/(show_line(pos[0],pos[4])*512.0),3.0);
-							l_color += pow((abs(weight[5]))/(show_line(pos[1],pos[4])*512.0),3.0);
-							l_color += pow((abs(weight[6]))/(show_line(pos[0],pos[5])*512.0),3.0);
-							l_color += pow((abs(weight[7]))/(show_line(pos[1],pos[5])*512.0),3.0);
-							l_color += pow((abs(weight[8]))/(show_line(pos[2],pos[6])*512.0),3.0);
-							l_color += pow((abs(weight[9]))/(show_line(pos[3],pos[6])*512.0),3.0);
-							l_color += pow((abs(weight[10]))/(show_line(pos[4],pos[6])*512.0),3.0);
-							l_color += pow((abs(weight[11]))/(show_line(pos[5],pos[6])*512.0),3.0);
+							l_color += pow(3.0*(abs(weight[2]))/(show_line(pos[0],pos[3])*512.0),3.0);
+							l_color += pow(3.0*(abs(weight[3]))/(show_line(pos[1],pos[3])*512.0),3.0);
+							l_color += pow(3.0*(abs(weight[4]))/(show_line(pos[0],pos[4])*512.0),3.0);
+							l_color += pow(3.0*(abs(weight[5]))/(show_line(pos[1],pos[4])*512.0),3.0);
+							l_color += pow(3.0*(abs(weight[6]))/(show_line(pos[0],pos[5])*512.0),3.0);
+							l_color += pow(3.0*(abs(weight[7]))/(show_line(pos[1],pos[5])*512.0),3.0);
+							l_color += pow(3.0*(abs(weight[8]))/(show_line(pos[2],pos[6])*512.0),3.0);
+							l_color += pow(3.0*(abs(weight[9]))/(show_line(pos[3],pos[6])*512.0),3.0);
+							l_color += pow(3.0*(abs(weight[10]))/(show_line(pos[4],pos[6])*512.0),3.0);
+							l_color += pow(3.0*(abs(weight[11]))/(show_line(pos[5],pos[6])*512.0),3.0);
 
 							//l_color += pow(show_line(pos[0],pos[4])*512.0,2.0);
 							//l_color += pow(show_line(pos[0],pos[5])*512.0,2.0);
@@ -680,9 +681,20 @@
 	</head>
 
 	<body>
+			<div style="text-align:center" ><font size="7">Multilayer perceptron</font></div>
+<div class="contents">
 		<canvas id="canvas"></canvas>
 
 	</body>
-	<label><input class="checkbox" type="checkbox" id="cbox1" value="network weight">network weight</label><br>
+
+	<h2>show graph</h2>
+	<div class="onoffswitch">
+    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="cbox1" >
+    <label class="onoffswitch-label" for="cbox1">
+        <span class="onoffswitch-inner"></span>
+        <span class="onoffswitch-switch"></span>
+    </label>
+</div>
+</div
 
 </html>
