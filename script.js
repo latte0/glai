@@ -118,11 +118,13 @@ onload = function(){
 	nu_uniLocation[5] = gl.getUniformLocation(nu_prg, 'outputL');
 	nu_uniLocation[6] = gl.getUniformLocation(nu_prg, 'training');
 	nu_uniLocation[7] = gl.getUniformLocation(nu_prg, 'delta');
+	nu_uniLocation[7] = gl.getUniformLocation(nu_prg, 'afunc');
 
 	var disp_uniLocation = new Array();
 	disp_uniLocation[0] = gl.getUniformLocation(disp_prg, 'texture');
 	disp_uniLocation[1] = gl.getUniformLocation(disp_prg, 'data');
 	disp_uniLocation[2] = gl.getUniformLocation(disp_prg, 'result');
+	disp_uniLocation[2] = gl.getUniformLocation(disp_prg, 'afunc');
 
 	var w_uniLocation = new Array();
 	w_uniLocation[0] = gl.getUniformLocation(disp_prg, 'texture');
@@ -159,6 +161,19 @@ onload = function(){
 
 	(function(){
 		count++;
+
+
+		var afunction;
+
+		var afuncList = document.getElementsByName("afunc");
+				for(var i=0; i<afuncList.length; i++){
+					if (afuncList[i].checked) {
+						afunction = eval(afuncList[i].value);
+						break;
+					}
+				}
+
+				console.log(afunction);
 
 
 		if(count == 1){
@@ -201,6 +216,7 @@ onload = function(){
 		gl.uniform1i(nu_uniLocation[5], NUM_OUTPUT);
 		gl.uniform1i(nu_uniLocation[6], N);
 		gl.uniform1f(nu_uniLocation[7], DELTA);
+				gl.uniform1f(nu_uniLocation[8], afunction);
 
 			gl.activeTexture(gl.TEXTURE0);
 			gl.bindTexture(gl.TEXTURE_2D, fBuffer[(count+1)%2].t);
@@ -234,6 +250,7 @@ if(showgraph){
 				gl.uniform1i(disp_uniLocation[0], 0);
 				gl.uniform1i(disp_uniLocation[1], data);
 				gl.uniform1i(disp_uniLocation[2], result);
+				gl.uniform1i(disp_uniLocation[3], afunction);
 
 				gl.activeTexture(gl.TEXTURE0);
 				gl.bindTexture(gl.TEXTURE_2D, fBuffer[(count)%2].t);

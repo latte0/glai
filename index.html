@@ -69,6 +69,7 @@
 						uniform int outputL;
 						uniform int training;
 						uniform float delta;
+						uniform int afunc;
 
             uniform sampler2D texture;
 
@@ -139,6 +140,20 @@
 							return x * (1.0 - x);
 						}
 
+						float afunction(float x){
+							float tmp;
+								if(afunc == 0) tmp = sigmoid(x);
+								else tmp = tanh(x);
+								return tmp;
+						}
+
+						float afunction_df(float x){
+							float tmp;
+								if(afunc == 0) tmp = sigmoid_df(x);
+								else tmp = tanh_df(x);
+								return tmp;
+						}
+
 						int mod(int x, int y){
 							return x - y * int(x/y);
 						}
@@ -181,7 +196,7 @@
 											a[i] += getweight(0,i,j,INPUTL) * x[j];
 										}
 								//		z[i] = tanh(a[i]);
-								z[i] = sigmoid(a[i]);
+								z[i] = afunction(a[i]);
 								}
 
 
@@ -199,7 +214,7 @@
 									for(int j=0; j < HIDDENL; j++){
 												float tmp = getweight(1,0,j,HIDDENL) * d2[0];
 											//	d1[j] = tanh_df(z[j]) * tmp;
-												d1[j] = sigmoid_df(z[j]) * tmp;
+												d1[j] = afunction_df(z[j]) * tmp;
 									}
 
 
@@ -263,6 +278,7 @@
 						varying vec4 vPosition;
 						varying vec2 vTexCoord;
 					  uniform sampler2D texture;
+						uniform int afunc;
 
 						const int HIDDENL = 4;
 						const int INPUTL = 2;
@@ -329,6 +345,7 @@
 						}
 
 
+
 						float tanh(float x)
 						{
 							float s  = (exp(x) - exp(-x)) / 2.0;
@@ -349,6 +366,14 @@
 						float sigmoid_df(float x){
 							return x * (1.0 - x);
 						}
+
+						float afunction(float x){
+							float tmp;
+								if(afunc == 0) tmp = sigmoid(x);
+								else tmp = tanh(x);
+								return tmp;
+						}
+
 
 
 												int mod(int x, int y){
@@ -416,7 +441,7 @@
 									for(int j = 0; j<INPUTL; j++){
 										a[i] += getweight(0,i,j,INPUTL) * x[j];
 									}
-									z[i] = sigmoid(a[i]);
+									z[i] = afunction(a[i]);
 							}
 
 							for(int i=0;i< OUTPUTL;i++){
@@ -475,7 +500,7 @@
 										for(int j = 0; j<INPUTL; j++){
 											a[i] += getweight(0,i,j,INPUTL) * x[j];
 										}
-										z[i] = tanh(a[i]);
+										z[i] = afunction(a[i]);
 								}
 
 
@@ -740,6 +765,11 @@
         <span class="onoffswitch-switch"></span>
     </label>
 </div>
-</div
+<form action="./enq.cgi" method="get" id="functionForm" name="functionForm">
+<input type="radio" name="afunc" value="0"> sigmoid
+<input type="radio" name="afunc" value="1" checked > tanh
+</form>
+
+</div>
 
 </html>
