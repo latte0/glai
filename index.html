@@ -141,10 +141,10 @@
 						}
 
 						float afunction(float x){
-							float tmp;
-								if(afunc == 0) tmp = sigmoid(x);
-								else tmp = tanh(x);
-								return tmp;
+							float tmp = 0.0;
+							if(afunc == 0) tmp = sigmoid(x);
+							if(afunc == 1) tmp = tanh(x);
+							return tmp;
 						}
 
 						float afunction_df(float x){
@@ -368,9 +368,9 @@
 						}
 
 						float afunction(float x){
-							float tmp;
+							float tmp = 0.0;
 								if(afunc == 0) tmp = sigmoid(x);
-								else tmp = tanh(x);
+								if(afunc == 1) tmp = tanh(x);
 								return tmp;
 						}
 

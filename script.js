@@ -216,7 +216,7 @@ onload = function(){
 		gl.uniform1i(nu_uniLocation[5], NUM_OUTPUT);
 		gl.uniform1i(nu_uniLocation[6], N);
 		gl.uniform1f(nu_uniLocation[7], DELTA);
-				gl.uniform1f(nu_uniLocation[8], afunction);
+		gl.uniform1i(nu_uniLocation[8], afunction);
 
 			gl.activeTexture(gl.TEXTURE0);
 			gl.bindTexture(gl.TEXTURE_2D, fBuffer[(count+1)%2].t);
@@ -248,8 +248,8 @@ if(showgraph){
 				set_attribute(dispVBOList, dispAttLocation, dispAttStride);
 				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vIndex);
 				gl.uniform1i(disp_uniLocation[0], 0);
-				gl.uniform1i(disp_uniLocation[1], data);
-				gl.uniform1i(disp_uniLocation[2], result);
+				gl.uniform1f(disp_uniLocation[1], data);
+				gl.uniform1f(disp_uniLocation[2], result);
 				gl.uniform1i(disp_uniLocation[3], afunction);
 
 				gl.activeTexture(gl.TEXTURE0);
