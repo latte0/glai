@@ -198,7 +198,7 @@
 
 									for(int j=0; j < HIDDENL; j++){
 												float tmp = getweight(1,0,j,HIDDENL) * d2[0];
-											//	d1[j] = (1.0 - z[j] * z[j]) * tmp;
+											//	d1[j] = tanh_df(z[j]) * tmp;
 												d1[j] = sigmoid_df(z[j]) * tmp;
 									}
 
@@ -329,12 +329,27 @@
 						}
 
 
-												float tanh(float x)
-												{
-													float s  = (exp(x) - exp(-x)) / 2.0;
-											    float c = (exp(x) + exp(-x)) / 2.0;
-											    return s / c;
-												}
+						float tanh(float x)
+						{
+							float s  = (exp(x) - exp(-x)) / 2.0;
+							float c = (exp(x) + exp(-x)) / 2.0;
+							return s / c;
+						}
+
+						float tanh_df(float x)
+						{
+							return (1.0 - x * x);
+						}
+
+						float sigmoid (float x)
+						{
+							return	1.0 / (1.0 + exp(-x));
+						}
+
+						float sigmoid_df(float x){
+							return x * (1.0 - x);
+						}
+
 
 												int mod(int x, int y){
 													return x - y * int(x/y);
@@ -401,7 +416,7 @@
 									for(int j = 0; j<INPUTL; j++){
 										a[i] += getweight(0,i,j,INPUTL) * x[j];
 									}
-									z[i] = tanh(a[i]);
+									z[i] = sigmoid(a[i]);
 							}
 
 							for(int i=0;i< OUTPUTL;i++){
@@ -430,7 +445,7 @@
 									for(int j = 0; j<INPUTL; j++){
 										a[i] += getweight(0,i,j,INPUTL) * x[j];
 									}
-									z[i] = tanh(a[i]);
+									z[i] = sigmoid(a[i]);
 							}
 
 							for(int i=0;i< OUTPUTL;i++){
