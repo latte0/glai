@@ -118,13 +118,13 @@ onload = function(){
 	nu_uniLocation[5] = gl.getUniformLocation(nu_prg, 'outputL');
 	nu_uniLocation[6] = gl.getUniformLocation(nu_prg, 'training');
 	nu_uniLocation[7] = gl.getUniformLocation(nu_prg, 'delta');
-	nu_uniLocation[7] = gl.getUniformLocation(nu_prg, 'afunc');
+	nu_uniLocation[8] = gl.getUniformLocation(nu_prg, 'afunc');
 
 	var disp_uniLocation = new Array();
 	disp_uniLocation[0] = gl.getUniformLocation(disp_prg, 'texture');
 	disp_uniLocation[1] = gl.getUniformLocation(disp_prg, 'data');
 	disp_uniLocation[2] = gl.getUniformLocation(disp_prg, 'result');
-	disp_uniLocation[2] = gl.getUniformLocation(disp_prg, 'afunc');
+	disp_uniLocation[3] = gl.getUniformLocation(disp_prg, 'afunc');
 
 	var w_uniLocation = new Array();
 	w_uniLocation[0] = gl.getUniformLocation(disp_prg, 'texture');
