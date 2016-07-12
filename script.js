@@ -19,8 +19,10 @@ onload = function(){
 
 
 	var data = new Array();
-  var result = new Array();
-	for(var k = 0; k < 50 ;k++) result[k] = -Math.cos((k/50.0-0.5)*3.14);
+  var result_cos = new Array();
+	var result_x = new Array();
+	for(var k = 0; k < 50 ;k++) result_cos[k] = -Math.cos((k/50.0-0.5)*3.14);
+	for(var k = 0; k < 50 ;k++) result_x[k] = k/50.0 - 0.5;
 	for(var k = 0; k < 50 ;k++) data[k] = (k/50.0 - 0.5) + 0.0;
 
 
@@ -125,6 +127,7 @@ onload = function(){
 	disp_uniLocation[1] = gl.getUniformLocation(disp_prg, 'data');
 	disp_uniLocation[2] = gl.getUniformLocation(disp_prg, 'result');
 	disp_uniLocation[3] = gl.getUniformLocation(disp_prg, 'afunc');
+	disp_uniLocation[4] = gl.getUniformLocation(disp_prg, 'resultfunc');
 
 	var w_uniLocation = new Array();
 	w_uniLocation[0] = gl.getUniformLocation(disp_prg, 'texture');
@@ -164,13 +167,21 @@ onload = function(){
 
 
 		var afunction;
-
+		var resultfunction;
 		var afuncList = document.getElementsByName("afunc");
 				for(var i=0; i<afuncList.length; i++){
 					if (afuncList[i].checked) {
 						afunction = eval(afuncList[i].value);
 						break;
 					}
+				}
+
+				var resultfuncList = document.getElementsByName("resultfunc");
+						for(var i=0; i<afuncList.length; i++){
+							if (resultfuncList[i].checked) {
+								resultfunction = eval(resultfuncList[i].value);
+								break;
+						}
 				}
 
 				console.log(afunction);
@@ -208,9 +219,12 @@ onload = function(){
 		set_attribute(nuVBOList, nuAttLocation, nuAttStride);
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vIndex);
 
-		gl.uniform1f(nu_uniLocation[0], data[count%50]);
+		var rand = Math.floor( Math.random() * 50 ) % 50 ;
+
+		gl.uniform1f(nu_uniLocation[0], data[rand]);
 		gl.uniform1i(nu_uniLocation[1], 0);
-		gl.uniform1f(nu_uniLocation[2], result[count%50]);
+		if(resultfunction == 1) gl.uniform1f(nu_uniLocation[2], result_cos[rand]);
+		else gl.uniform1f(nu_uniLocation[2], result_x[rand]);
 		gl.uniform1i(nu_uniLocation[3], NUM_INPUT);
 		gl.uniform1i(nu_uniLocation[4], NUM_HIDDEN);
 		gl.uniform1i(nu_uniLocation[5], NUM_OUTPUT);
@@ -249,9 +263,11 @@ if(showgraph){
 				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vIndex);
 				gl.uniform1i(disp_uniLocation[0], 0);
 				gl.uniform1f(disp_uniLocation[1], data);
-				gl.uniform1f(disp_uniLocation[2], result);
+				if(resultfunction == 1) gl.uniform1f(nu_uniLocation[2], result_cos[rand]);
+				else gl.uniform1f(nu_uniLocation[2], result_x[rand]);
 				gl.uniform1i(disp_uniLocation[3], afunction);
-
+				gl.uniform1i(disp_uniLocation[4], resultfunction);
+	
 				gl.activeTexture(gl.TEXTURE0);
 				gl.bindTexture(gl.TEXTURE_2D, fBuffer[(count)%2].t);
 

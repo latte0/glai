@@ -279,6 +279,7 @@
 						varying vec2 vTexCoord;
 					  uniform sampler2D texture;
 						uniform int afunc;
+						uniform int resultfunc;
 
 						const int HIDDENL = 4;
 						const int INPUTL = 2;
@@ -507,6 +508,13 @@
 							  return vec4(z[0],z[1],z[2],z[3]);
 							}
 
+						float calc_resultfunc(float x){
+							float tmp ;
+							if(resultfunc==0) tmp = x;
+							if(resultfunc == 1) tmp = -cos(3.14*x);
+							return tmp;
+						}
+
 
 
 						void main() {
@@ -523,6 +531,7 @@
 							vec2  hpos1[50];
 							vec2  hpos2[50];
 							vec2  hpos3[50];
+							vec2  respos[50];
 
 							for(int i= 0; i< LOOP+1; i++){
 								int a = i*2 - LOOP;
@@ -536,13 +545,16 @@
 							hpos1[i] = adjust_function( vec2( float(a)/float(LOOP), tmp.hidden.y ));
 							hpos2[i] = adjust_function( vec2( float(a)/float(LOOP), tmp.hidden.z ));
 							hpos3[i] = adjust_function( vec2( float(a)/float(LOOP), tmp.hidden.w ));
+							respos[i] = adjust_function( vec2( float(a)/float(LOOP), calc_resultfunc(float(a)/float(LOOP)) ));
 							}
 
 							float dist = 0.0;
 							float h_dist[4];
+							float result_dist = 0.0;
 
 							float color = 0.0;
 							float h_color = 0.0;
+							float res_color = 0.0;
 
 
 						//	all_dist = vec3(0.0, 0.0, 0.0);
@@ -556,7 +568,7 @@
 														h_dist[1] = solve_distance(vec2(float(reso.x),float(512-reso.y)),solve_line(hpos1[i],hpos1[i+1]));
 														h_dist[2] = solve_distance(vec2(float(reso.x),float(512-reso.y)),solve_line(hpos2[i],hpos2[i+1]));
 														h_dist[3] = solve_distance(vec2(float(reso.x),float(512-reso.y)),solve_line(hpos3[i],hpos3[i+1]));
-
+														result_dist = solve_distance(vec2(float(reso.x),float(512-reso.y)),solve_line(respos[i],respos[i+1]));
 												}
 
 											}
@@ -567,6 +579,8 @@
 							h_color += pow(size/h_dist[1], 2.0);
 							h_color += pow(size/h_dist[2], 2.0);
 							h_color += pow(size/h_dist[3], 2.0);
+							res_color += pow(size/result_dist, 2.0);
+
 							/*
 							for(int i = 0; i < 4; i++){
 								h_color += pow(size/h_dist[i],2.0);
@@ -581,7 +595,7 @@
 							}
 */
 						//		gl_FragColor = texture2D(texture, vTexCoord.xy);
-							gl_FragColor = vec4(vec3(color+h_color,color,color), 1.0);
+							gl_FragColor = vec4(vec3(color+h_color,color+res_color/4.0,color+res_color/1.5), 1.0);
 						//gl_FragColor = vec4(1.0,0.0,0.0,1.0);
 						}
 					</script>
@@ -765,9 +779,14 @@
         <span class="onoffswitch-switch"></span>
     </label>
 </div>
+<br><br>
 <form action="./enq.cgi" method="get" id="functionForm" name="functionForm">
 <input type="radio" name="afunc" value="0"> sigmoid
 <input type="radio" name="afunc" value="1" checked > tanh
+<br>
+<input type="radio" name="resultfunc" value="0"> y = x
+<input type="radio" name="resultfunc" value="1" checked > y = -cos(x)
+
 </form>
 
 </div>
