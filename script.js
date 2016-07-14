@@ -12,6 +12,17 @@ var NUM_OUTPUT = 1
 var showgraph = true;
 
 
+var normRand = function (mu, sigma) {
+    var a = 1 - Math.random();
+    var b = 1 - Math.random();
+    var c = Math.sqrt(-2 * Math.log(a));
+    if(0.5 - Math.random() > 0) {
+        return c * Math.sin(Math.PI * 2 * b) * sigma + mu;
+    }else{
+        return c * Math.cos(Math.PI * 2 * b) * sigma + mu;
+    }
+};
+
 onload = function(){
 	c = document.getElementById('canvas');
 	c.width = 512;
@@ -128,6 +139,7 @@ onload = function(){
 	disp_uniLocation[2] = gl.getUniformLocation(disp_prg, 'result');
 	disp_uniLocation[3] = gl.getUniformLocation(disp_prg, 'afunc');
 	disp_uniLocation[4] = gl.getUniformLocation(disp_prg, 'resultfunc');
+	disp_uniLocation[5] = gl.getUniformLocation(disp_prg, 'variance');
 
 	var w_uniLocation = new Array();
 	w_uniLocation[0] = gl.getUniformLocation(disp_prg, 'texture');
@@ -164,6 +176,9 @@ onload = function(){
 
 	(function(){
 		count++;
+
+		var variance = eval(document.getElementById("variance").value) / 100.0;
+
 
 
 		var afunction;
@@ -223,8 +238,8 @@ onload = function(){
 
 		gl.uniform1f(nu_uniLocation[0], data[rand]);
 		gl.uniform1i(nu_uniLocation[1], 0);
-		if(resultfunction == 1) gl.uniform1f(nu_uniLocation[2], result_cos[rand]);
-		else gl.uniform1f(nu_uniLocation[2], result_x[rand]);
+		if(resultfunction == 1) gl.uniform1f(nu_uniLocation[2], result_cos[rand] + normRand(0.0,variance) );
+		else gl.uniform1f(nu_uniLocation[2], result_x[rand] + normRand(0.0,variance) );
 		gl.uniform1i(nu_uniLocation[3], NUM_INPUT);
 		gl.uniform1i(nu_uniLocation[4], NUM_HIDDEN);
 		gl.uniform1i(nu_uniLocation[5], NUM_OUTPUT);
@@ -245,6 +260,8 @@ onload = function(){
 
 
 
+							console.log(normRand(0.0,variance));
+
 //ここでディスプレイに表示する。
 
 
@@ -264,10 +281,11 @@ if(showgraph){
 				gl.uniform1i(disp_uniLocation[0], 0);
 				gl.uniform1f(disp_uniLocation[1], data);
 				if(resultfunction == 1) gl.uniform1f(nu_uniLocation[2], result_cos[rand]);
-				else gl.uniform1f(nu_uniLocation[2], result_x[rand]);
+				else gl.uniform1f(nu_uniLocation[2], result_x[rand] );
 				gl.uniform1i(disp_uniLocation[3], afunction);
 				gl.uniform1i(disp_uniLocation[4], resultfunction);
-	
+				gl.uniform1f(disp_uniLocation[5], variance);
+
 				gl.activeTexture(gl.TEXTURE0);
 				gl.bindTexture(gl.TEXTURE_2D, fBuffer[(count)%2].t);
 
@@ -319,7 +337,7 @@ if(showgraph){
 		gl.flush();
 		console.log(count);
 
-		setTimeout(arguments.callee, 200 / 1);
+		setTimeout(arguments.callee, 500 / 1);
 	})();
 
 
